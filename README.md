@@ -97,7 +97,7 @@ python setup.py develop
 
 ### Base Concepts
 
-A  `PromptModel`  object contains a `PLM`, a (or multiple) `Template`  and a (or multiple) `Verbalizer`, where the `Template` class is defined to wrap the original input with templates, and the `Verbalizer` class is to construct a projection between labels and target words in the current vocabulary. And a `PromptModel`  object practically participates in training and inference. 
+To use OpenPrompt you are required to instantiate a number of base classes to intiate a training process with Pytorch.
 
 ### Introduction by a Simple Example
 
@@ -105,7 +105,7 @@ With the modularity and flexibility of OpenPrompt, you can easily develop a prom
 
 #### Step 1: Define a task
 
-The first step is to determine the current NLP task, think about what’s your data looks like and what do you want from the data! That is, the essence of this step is to determine the `classses` and the `InputExample` of the task. For simplicity, we use Sentiment Analysis as an example. tutorial_task.
+The first step is to determine the current NLP task, think about what input infers data that is important to you. Determine the `classses` and the `InputExample` of the task. For simplicity, we use Sentiment Analysis as an example. tutorial_task.
 
 ```python
 from openprompt.data_utils import InputExample
@@ -128,9 +128,9 @@ dataset = [ # For simplicity, there's only two examples
 
 
 
-#### Step 2: Define a Pre-trained Language Models (PLMs) as backbone.
+#### Step 2: Define a Pre-trained Language Model (PLM)
 
-Choose a PLM to support your task. Different models have different attributes, we encourge you to use OpenPrompt to explore the potential of various PLMs. OpenPrompt is compatible with models on [huggingface](https://huggingface.co/transformers/).
+Choose a PLM to support your task. Models have attributes which can be expressed as key value pairs, one to many relationships. Here plm, tokenizer, model_config, are declared, and WrapperClass is assigned to the value of load_plm. You must define OpenPrompt is compatible with models on [huggingface](https://huggingface.co/transformers/).
 
 ```python
 from openprompt.plms import load_plm
@@ -139,9 +139,9 @@ plm, tokenizer, model_config, WrapperClass = load_plm("bert", "bert-base-cased")
 
 
 
-#### Step 3: Define a Template.
+#### Step 3: Define a ManualTemplate Instance
 
-A `Template` is a modifier of the original input text, which is also one of the most important modules in prompt-learning. 
+The `ManualTemplate` class is a modifier of the original input text. 
 We have defined `text_a` in Step 1.
 
 ```python
@@ -154,9 +154,9 @@ promptTemplate = ManualTemplate(
 
 
 
-#### Step 4: Define a Verbalizer
+#### Step 4: Define a ManualVerbalizer Instance
 
-A `Verbalizer` is another important (but not neccessary) in prompt-learning,which projects the original labels (we have defined them as `classes`, remember?) to a set of label words. Here is an example that we project the `negative` class to the word bad, and project the `positive` class to the words good, wonderful, great.
+The `ManualVerbalizer` class projects the original labels which are defined in te initial classes list. The classes list values are required to be included as keys in the label words dictionary. Keys are projected in a one to many relationship to the values.
 
 ```python
 from openprompt.prompts import ManualVerbalizer
@@ -172,9 +172,9 @@ promptVerbalizer = ManualVerbalizer(
 
 
 
-#### Step 5: Combine them into a PromptModel
+#### Step 5: Define the PromptForClassification Instance
 
-Given the task, now we have a `PLM`, a `Template` and a `Verbalizer`, we combine them into a `PromptModel`. Note that although the example naively combine the three modules, you can actually define some complicated interactions among them.
+The `PromptForClassification` requires 3 values as parameters.The `PLM` stored as `WrapperClass`, a `ManualTemplate` instance, and a `ManualVerbalizer` instance. 
 
 ```python
 from openprompt import PromptForClassification
@@ -185,9 +185,9 @@ promptModel = PromptForClassification(
 )
 ```
 
-#### Step 6: Define a DataLoader
+#### Step 6: Define a PromptDataLoader Instance
 
-A ``PromptDataLoader`` is basically a prompt version of pytorch Dataloader, which also includes a ``Tokenizer``, a ``Template`` and a ``TokenizerWrapper``.
+The ``PromptDataLoader`` essentially a prompt version of pytorch Dataloader batches the dataset for training. This class requires 4 arguments ``ManualTemplate``, a ``PromtForClassification`` class and the declared ``WrapperClass``.
 
 ```python
 
